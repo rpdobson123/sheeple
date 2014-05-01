@@ -1,0 +1,557 @@
+
+<html>  
+<head>  
+<script type="application/javascript"> 
+var level = 0;
+var framecount = 0;
+var sheeple = [];
+var sheepIMG = new Image();
+sheepIMG.src = "sheep.png";
+var sheepsIMG = new Image();
+sheepsIMG.src = "sheepspin.png";
+var goalIMG = new Image();
+goalIMG.src = "goal.png";
+var levelstart = 1;
+var gravity = .1;
+var rising = 0;
+var pressedl = 0;
+var presseds = 0;
+var pressedr = 0;
+var enter = 0;
+var restart = 0
+var canskip = 1;
+var goals = [];
+var vertwalls = new Array (100);
+for (i = 0; i < 100; i++)
+	vertwalls [i] = new Array(10);
+var horizwalls = new Array (100);
+for (i = 0; i < 100; i++)
+	horizwalls [i] = new Array(10);
+var vertlava = new Array (100);
+for (i = 0; i < 100; i++)
+	vertlava [i] = new Array(10);
+var horizlava = new Array (100);
+for (i = 0; i < 100; i++)
+	horizlava [i] = new Array(10);	
+var lose = 0;
+function vertwall(x,y1,y2)  //provides a constructor to create a vertical wall given the x coordinate and the top and bottom y coordinates
+{
+	this.x = x;
+	this.y1 = y1;
+	this.y2 = y2;
+}
+function horizwall(y,x1,x2) //provides a constructor to create a horizontal wall given the y coordinate and the left and right x coordinates
+{
+	this.y = y;
+	this.x1 = x1;
+	this.x2 = x2;
+}
+function goal(x,y) //provides a constructor to create a level goal given the x and y coordinates
+{
+	this.x = x;
+	this.y = y;
+}
+
+
+var UP = 1;
+var LEFT = 2;
+var RIGHT = 3;
+var DOWN = 4;
+function go() //executes "onload" from the HTML document
+{
+	var canvas = document.getElementById("canvas");  	
+	if (canvas.getContext) 
+	{ 
+		var ctx = canvas.getContext("2d"); 
+		initlevels();
+		setInterval(function()
+				{
+			framecount++;	
+			update();
+			draw(ctx);
+				},30);
+	}
+}
+function initlevels() //initializes the actual level data (locations of walls, goals, and lava walls)
+{
+	goals[1] = new goal(720,400);
+	vertwalls[1][0] = new vertwall(700,360,500);
+	horizwalls[1][0] = new horizwall(500,0,300);
+
+
+	goals[2] = new goal(500,400);
+	vertlava[2][0] = new vertwall(440,420,600);
+	vertlava[2][1] = new vertwall(200,420,600);
+
+	goals[3] = new goal(400,450);
+	vertlava[3][0] = new vertwall (300,360,600);
+	vertlava[3][1] = new vertwall (180,180,600);
+	horizlava[3][0] = new horizwall(360,300,600);
+	horizlava[3][1] = new horizwall(180,180,600);
+
+	goals[4] = new goal (520,20)
+	vertlava[4][0] = new vertwall (100, 400, 600)
+	vertlava[4][1] = new vertwall (225, 250, 600)
+	vertlava[4][2] = new vertwall (375, 100, 600)
+	horizlava[4][0] = new horizwall (250,100,175)
+
+}
+function update() //runs on interval as the main game loop
+{
+	if(lose == 0)
+	{
+		if(level == 1&&levelstart == 1)
+		{
+			levelstart = 0;
+			sheeple.push({ x: 20, y : 520, falling : 0, rising : 0, dx : 0.0, dy : 0.0});
+			sheeple.push({ x: 60, y : 520, falling : 0, rising : 0, dx : 0.0, dy : 0.0});
+		}
+		if(level == 2&&levelstart == 1)
+		{
+			levelstart = 0;
+			sheeple.push({ x: 20, y : 520, falling : 0, rising : 0, dx : 0.0, dy : 0.0});
+			sheeple.push({ x: 300, y : 520, falling : 0, rising : 0, dx : 0.0, dy : 0.0});
+		}
+		if(level == 3&&levelstart == 1)
+		{
+			levelstart = 0;
+			sheeple.push({ x: 205, y : 520, falling : 0, rising : 0, dx : 0.0, dy : 0.0});
+		}
+		if(level == 4&&levelstart == 1)
+		{
+			levelstart = 0;
+			sheeple.push({ x: 150, y : 520, falling : 0, rising : 0, dx : 0.0, dy : 0.0});
+			sheeple.push({ x: 300, y : 520, falling : 0, rising : 0, dx : 0.0, dy : 0.0});
+			sheeple.push({ x: 450, y : 520, falling : 0, rising : 0, dx : 0.0, dy : 0.0});
+		}
+		if(level == 5&&levelstart == 1)
+		{
+			levelstart = 0;
+			sheeple.push({ x: 200, y : 520, falling : 0, rising : 0, dx : 0.0, dy : 0.0});
+			sheeple.push({ x: 400, y : 520, falling : 0, rising : 0, dx : 0.0, dy : 0.0});
+		}
+		for (var current = 0; current < sheeple.length; current++)
+		{ 
+			if(victory(sheeple[current])==1)
+			{
+				sheeple.splice(current,1);
+				if(sheeple.length ==0)
+				{
+					level+= 1;
+					levelstart = 1;
+				}
+			}
+			else
+			{
+				if(sheeple[current].y < 520&&preCol(sheeple[current],DOWN)==0)
+				{
+					if(presseds == 1)
+						sheeple[current].rising = 0;
+					else
+					{
+						sheeple[current].rising = 1;
+						sheeple[current].y+=sheeple[current].dy;
+						sheeple[current].dy+=0.2;
+					}
+				}
+				else
+				{
+					sheeple[current].dy = 0;
+					rising = 0;
+
+				}
+				if(sheeple[current].dx!=0)
+				{
+					if(sheeple[current].dx<0)
+					{
+						sheeple[current].dx+=0.5;
+					}
+					if(sheeple[current].dx>0)
+					{
+						sheeple[current].dx-=0.5;
+					}
+					sheeple[current].x+=sheeple[current].dx;
+				}
+			}
+		}
+		if(presseds==1) /* space bar was pressed */
+		{
+			for (var current = 0; current < sheeple.length; current++)
+			{
+				if(preCol(sheeple[current],UP)==0)
+				{
+					sheeple[current].dy = 3;
+					sheeple[current].y-=5;
+				}
+			}
+		}		
+		if(pressedl==1)/* Left arrow was pressed */
+		{
+			for (var current = 0; current < sheeple.length; current++)
+			{
+				if(preCol(sheeple[current],LEFT)==0)
+				{
+					sheeple[current].x-=3;
+					sheeple[current].dx=-3;
+				}
+			}
+		}
+		if(pressedr==1)  /* Right arrow was pressed */
+		{
+			for (var current = 0; current < sheeple.length; current++)
+			{
+				if(preCol(sheeple[current],RIGHT)==0)
+				{
+					sheeple[current].x+=3;
+					sheeple[current].dx=3;
+				}
+			}
+		}
+	}
+
+}
+function preCol(sheep, direction) //checks if a move is allowed; checks lose conditions if a move will put a sheep in lava.
+{
+	if(direction == UP)
+	{
+		if(sheep.y<0)
+		{
+			return 1;
+		}
+		for(var i = 0; horizwalls[level][i]!=null; i++)
+		{
+			if(sheep.y-8<horizwalls[level][i].y&&
+					sheep.y>horizwalls[level][i].y &&
+					sheep.x+48>horizwalls[level][i].x1&&
+					sheep.x<horizwalls[level][i].x2)
+			{
+				return 1;
+			}
+		}
+		for(var i = 0; horizlava[level][i]!=null; i++)
+		{
+			if(sheep.y-8<horizlava[level][i].y&&
+					sheep.y>horizlava[level][i].y&&
+					sheep.x+48>horizlava[level][i].x1&&
+					sheep.x<horizlava[level][i].x2)
+			{
+				lose = 1;
+			}
+		}
+		return 0;
+	}
+	else if(direction == LEFT)
+	{
+		if(sheep.x<=0)
+		{
+			return 1;
+		}
+		for(var i = 0; vertwalls[level][i]!=null; i++)
+		{
+			if(sheep.x-8<vertwalls[level][i].x&&
+					sheep.x>vertwalls[level][i].x&&
+					sheep.y+48>vertwalls[level][i].y1&&
+					sheep.y<vertwalls[level][i].y2)
+			{
+				return 1;
+			}
+		}
+		for(var i = 0; vertlava[level][i]!=null; i++)
+		{
+			if(sheep.x-8<vertlava[level][i].x&&
+					sheep.x>vertlava[level][i].x&&
+					sheep.y+48>vertlava[level][i].y1&&
+					sheep.y<vertlava[level][i].y2)
+			{
+				lose = 1
+			};
+		}
+		return 0;
+	}
+	else if(direction == RIGHT)
+	{
+		if(sheep.x+56>=800)
+		{
+			return 1;
+		}
+		for(var i = 0; vertwalls[level][i]!=null; i++)
+		{
+			if(sheep.x+48>vertwalls[level][i].x&&
+					sheep.x<vertwalls[level][i].x&&
+					sheep.y+48>vertwalls[level][i].y1&&
+					sheep.y<vertwalls[level][i].y2)
+			{
+				return 1;
+			}
+
+		}
+		for(var i = 0; vertlava[level][i]!=null; i++)
+		{
+			if(sheep.x+46>vertlava[level][i].x&&
+					sheep.x<vertlava[level][i].x&&
+					sheep.y+48>vertlava[level][i].y1&&
+					sheep.y<vertlava[level][i].y2)
+			{
+				lose = 1;
+			}
+		}
+		return 0;
+	}
+	else (direction == DOWN)
+	{
+		if(sheep.y+48>600)
+		{
+			return 1
+		}
+		for(var i = 0; horizwalls[level][i]!=null; i++)
+		{
+			if(sheep.y+48>horizwalls[level][i].y&&
+					sheep.y<horizwalls[level][i].y&&
+					sheep.x+48>horizwalls[level][i].x1&&
+					sheep.x<horizwalls[level][i].x2)
+			{
+				return 1;
+			}
+		}
+		for(var i = 0; horizlava[level][i]!=null; i++)
+		{
+			if(sheep.y+48>horizlava[level][i].y&&
+					sheep.y<horizlava[level][i].y&&
+					sheep.x+48>horizlava[level][i].x1&&
+					sheep.x<horizlava[level][i].x2)
+			{
+				lose = 1;
+			}
+		}
+		return 0;
+	}
+
+}
+function victory(sheep){ //tests if a sheep is within goal boundaries
+	if(		sheep.x+24>goals[level].x-30&&
+			sheep.x+24<goals[level].x+88&&
+			sheep.y+24>goals[level].y-30&&
+			sheep.y+24<goals[level].y+88)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+function Down(e) {   //event handler calls this function to test a keydown event (when a key is held down)
+	cxc = e.keyCode;
+	if(cxc == 37)
+		pressedl = 1;
+	if(cxc == 32)
+		presseds = 1;
+	if(cxc == 39)
+		pressedr = 1;
+	if(cxc == 39)
+		pressedr = 1;
+	if(cxc == 13)
+		enter = 1;
+	if(cxc == 82)
+		restart = 1;
+}
+function Up(e) { //event handler calls this function to test a keyup event (when a key is released)
+	cxc = e.keyCode;
+	if(cxc == 37)
+		pressedl = 0;
+	if(cxc == 32)
+		presseds = 0;
+	if(cxc == 39)
+		pressedr = 0;
+	if(cxc == 13)
+		enter = 0;
+	if(cxc == 82)
+		restart = 0;
+}
+function draw(ctx){  //drawing function to handle painting sheep, walls, text and goals to the screen
+	if(lose == 1)
+	{
+
+		ctx.fillStyle = "#f44";
+		ctx.fillRect(0,0,800,600);
+		ctx.strokeRect(0,0,800,600);
+		ctx.font = "18pt Calibri";
+		ctx.fillStyle = "#000";
+		ctx.fillText("You have mislead the sheeple.",40,300);
+		ctx.font = "14pt Calibri";
+		ctx.fillText("Press F5 if you'd like to try again.",25,320);
+	}
+	else
+	{
+		ctx.fillStyle = "#aaa";
+		ctx.fillRect(0,0,800,600);
+		ctx.linewidth = 2;
+		ctx.strokeStyle= "#000";
+		ctx.strokeRect(0,0,800,600);
+		ctx.linewidth = 1
+		if(level < 0)
+		{
+			if(lv == null)
+			{
+				level = 0;
+			}
+			else
+			{
+				ctx.font = "18pt Calibri";
+				ctx.fillStyle = "#000";
+				ctx.fillText("Would you like to pick up where you left off?",10,300);
+				ctx.fillText("Press [ENTER] to continue.",40,330)
+				ctx.fillText("Press [R] to start over.",40,360)
+				if(enter == 1)
+				{
+					level = parseInt(lv);
+				}
+				else if(restart == 1)
+				{
+					level = 0;
+				}
+			}
+		}
+
+		if(level > 0)
+		{
+			for(var current = 0; current < sheeple.length; current++)
+			{
+				if(sheeple[current].rising == 0||presseds == 1)
+				{
+					ctx.drawImage(sheepIMG,sheeple[current].x,sheeple[current].y);
+				}
+				else
+				{
+					ctx.drawImage(sheepsIMG,sheeple[current].x,sheeple[current].y); 
+
+				}
+
+			}
+			ctx.font = "14pt Calibri";
+			ctx.fillStyle = "f44";
+			ctx.fillText("Level "+level, 600,20);
+
+
+			ctx.drawImage(goalIMG,goals[level].x,goals[level].y);
+			if(level == 1)
+			{
+				ctx.fillStyle = "f44";
+				ctx.font = "12pt Calibri";
+				ctx.fillText("Let's start off nice and easy, we don't want anyone getting flustered.",6,25);
+			}
+			if(level == 2)
+			{
+				ctx.fillStyle = "#f44";
+				ctx.font = "12pt Calibri";
+				ctx.fillText("Sheeple are scared of many things.",25,25)
+				ctx.fillText("Their BIGGEST fear is lava, however.",22,37)
+			}
+			else if(level == 3)
+			{
+				ctx.fillStyle = "#f44";
+				ctx.font = "12pt Calibri";
+				ctx.fillText("Let's bring in the edges",25,25)
+				ctx.fillText("  a bit, shall we?",25,35);
+			}
+			else if(level == 4)
+			{
+				ctx.fillStyle = "#f44";
+				ctx.font = "12pt Calibri";
+				ctx.fillText("This is the part where you seperate",25,25)
+				ctx.fillText("yourself from the sheeple...but how?",25,35)
+				ctx.font = "16pt Calibri";
+				ctx.fillText("...with thought of course!",25,45);
+			}
+			for(var i = 0; vertwalls[level][i]!=undefined; i++)
+			{
+				ctx.beginPath()
+				ctx.moveTo(vertwalls[level][i].x,vertwalls[level][i].y1)
+				ctx.lineTo(vertwalls[level][i].x,vertwalls[level][i].y2)
+				ctx.strokeStyle = "#030"
+					ctx.stroke()
+					ctx.closePath()
+			}
+			for(var i = 0; vertlava[level][i]!=undefined; i++)
+			{
+				ctx.beginPath()
+				ctx.moveTo(vertlava[level][i].x,vertlava[level][i].y1)
+				ctx.lineTo(vertlava[level][i].x,vertlava[level][i].y2)
+				ctx.strokeStyle = "#f33"
+					ctx.stroke()
+					ctx.closePath()
+			}
+			for(var i = 0; horizwalls[level][i]!=undefined; i++)
+			{
+				ctx.beginPath()
+				ctx.moveTo(horizwalls[level][i].x1,horizwalls[level][i].y)
+				ctx.lineTo(horizwalls[level][i].x2,horizwalls[level][i].y)
+				ctx.strokeStyle = "#030"
+					ctx.stroke()
+					ctx.closePath()
+			}
+			for(var i = 0; horizlava[level][i]!=undefined; i++)
+			{
+				ctx.beginPath()
+				ctx.moveTo(horizlava[level][i].x1,horizlava[level][i].y)
+				ctx.lineTo(horizlava[level][i].x2,horizlava[level][i].y)
+				ctx.strokeStyle = "#f33"
+					ctx.stroke()
+					ctx.closePath()
+			}
+
+		}
+		else if(level == 0)
+		{
+			if(enter == 1)
+			{
+				level = 1
+				levelstart = 1
+			}
+			ctx.fillStyle = "#f44";
+			ctx.font = "24pt Calibri";
+			ctx.fillText("You are the master of the sheeple.",25,43);
+			if(framecount > 100)
+			{
+				ctx.font = "14pt Calibri";
+				ctx.fillText("What are sheeple, you ask?",25,73);
+			}
+			if(framecount > 200)
+			{
+				ctx.font = "12pt Calibri";
+				ctx.fillText("Sheeple are small, white creatures",10,90)
+			}
+			if(framecount > 300)
+				ctx.fillText("They're sort of like people...",10,110)
+				if(framecount > 400)
+					ctx.fillText("...and sort of like sheep, too.", 70,130);
+			if(framecount > 500)
+				ctx.fillText("You will find some sheeple soon.", 80,150);
+			if(framecount > 600)
+				ctx.fillText("Use the arrow keys and the spacebar to try to guide them to safety.", 25,170);
+			if(framecount > 700)
+				ctx.fillText("Your game will be saved automatically every three levels.",25,190);
+			if(framecount > 800)
+				ctx.fillText("Good luck and godspeed, you'll need it to save the Sheeple.", 25,210);
+			if(framecount > 900)
+			{
+				ctx.font = "10pt Calibri";
+				ctx.fillText("Press Enter when you are ready to begin...",25,250)
+			}
+		}
+	}
+	ctx.fillStyle = "#000"
+		ctx.fillRect(0,600,800,630)
+		ctx.font = "6pt Calibri";
+	ctx.fillStyle = "#fff"
+		ctx.fillText("By Richard Dobson",300,615);
+}
+
+</script>  
+</head>  
+<body onload="go();" onKeyDown="Down(event)" onKeyUp="Up(event)">  
+<center>
+<canvas id="canvas" width="800" height="630">Couldn't load HTML5. Update your browser!</canvas>  
+</center>
+</body>  
+</html>  
