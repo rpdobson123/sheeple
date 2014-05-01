@@ -34,19 +34,19 @@ var horizlava = new Array (100);
 for (i = 0; i < 100; i++)
 	horizlava [i] = new Array(10);	
 var lose = 0;
-function vertwall(x,y1,y2)
+function vertwall(x,y1,y2)  //provides a constructor to create a vertical wall given the x coordinate and the top and bottom y coordinates
 {
 	this.x = x;
 	this.y1 = y1;
 	this.y2 = y2;
 }
-function horizwall(y,x1,x2)
+function horizwall(y,x1,x2) //provides a constructor to create a horizontal wall given the y coordinate and the left and right x coordinates
 {
 	this.y = y;
 	this.x1 = x1;
 	this.x2 = x2;
 }
-function goal(x,y)
+function goal(x,y) //provides a constructor to create a level goal given the x and y coordinates
 {
 	this.x = x;
 	this.y = y;
@@ -57,7 +57,7 @@ var UP = 1;
 var LEFT = 2;
 var RIGHT = 3;
 var DOWN = 4;
-function go()
+function go() //executes "onload" from the HTML document
 {
 	var canvas = document.getElementById("canvas");  	
 	if (canvas.getContext) 
@@ -72,7 +72,7 @@ function go()
 				},30);
 	}
 }
-function initlevels()
+function initlevels() //initializes the actual level data (locations of walls, goals, and lava walls)
 {
 	goals[1] = new goal(720,400);
 	vertwalls[1][0] = new vertwall(700,360,500);
@@ -96,7 +96,7 @@ function initlevels()
 	horizlava[4][0] = new horizwall (250,100,175)
 
 }
-function update()
+function update() //runs on interval as the main game loop
 {
 	if(lose == 0)
 	{
@@ -116,7 +116,6 @@ function update()
 		{
 			levelstart = 0;
 			sheeple.push({ x: 205, y : 520, falling : 0, rising : 0, dx : 0.0, dy : 0.0});
-			setCookie("sheeple",level,365)
 		}
 		if(level == 4&&levelstart == 1)
 		{
@@ -144,7 +143,7 @@ function update()
 			}
 			else
 			{
-				if(sheeple[current].y < 520&&precol(sheeple[current],DOWN)==0)
+				if(sheeple[current].y < 520&&preCol(sheeple[current],DOWN)==0)
 				{
 					if(presseds == 1)
 						sheeple[current].rising = 0;
@@ -179,7 +178,7 @@ function update()
 		{
 			for (var current = 0; current < sheeple.length; current++)
 			{
-				if(precol(sheeple[current],UP)==0)
+				if(preCol(sheeple[current],UP)==0)
 				{
 					sheeple[current].dy = 3;
 					sheeple[current].y-=5;
@@ -190,7 +189,7 @@ function update()
 		{
 			for (var current = 0; current < sheeple.length; current++)
 			{
-				if(precol(sheeple[current],LEFT)==0)
+				if(preCol(sheeple[current],LEFT)==0)
 				{
 					sheeple[current].x-=3;
 					sheeple[current].dx=-3;
@@ -201,7 +200,7 @@ function update()
 		{
 			for (var current = 0; current < sheeple.length; current++)
 			{
-				if(precol(sheeple[current],RIGHT)==0)
+				if(preCol(sheeple[current],RIGHT)==0)
 				{
 					sheeple[current].x+=3;
 					sheeple[current].dx=3;
@@ -211,7 +210,7 @@ function update()
 	}
 
 }
-function precol(sheep, direction)
+function preCol(sheep, direction) //checks if a move is allowed; checks lose conditions if a move will put a sheep in lava.
 {
 	if(direction == UP)
 	{
@@ -328,7 +327,7 @@ function precol(sheep, direction)
 	}
 
 }
-function victory(sheep){
+function victory(sheep){ //tests if a sheep is within goal boundaries
 	if(		sheep.x+24>goals[level].x-30&&
 			sheep.x+24<goals[level].x+88&&
 			sheep.y+24>goals[level].y-30&&
@@ -341,7 +340,7 @@ function victory(sheep){
 		return 0;
 	}
 }
-function Down(e) { 
+function Down(e) {   //event handler calls this function to test a keydown event (when a key is held down)
 	cxc = e.keyCode;
 	if(cxc == 37)
 		pressedl = 1;
@@ -356,7 +355,7 @@ function Down(e) {
 	if(cxc == 82)
 		restart = 1;
 }
-function Up(e) {
+function Up(e) { //event handler calls this function to test a keyup event (when a key is released)
 	cxc = e.keyCode;
 	if(cxc == 37)
 		pressedl = 0;
@@ -369,7 +368,7 @@ function Up(e) {
 	if(cxc == 82)
 		restart = 0;
 }
-function draw(ctx){
+function draw(ctx){  //drawing function to handle painting sheep, walls, text and goals to the screen
 	if(lose == 1)
 	{
 
@@ -392,7 +391,6 @@ function draw(ctx){
 		ctx.linewidth = 1
 		if(level < 0)
 		{
-			var lv = getCookie("sheeple")
 			if(lv == null)
 			{
 				level = 0;
@@ -547,20 +545,6 @@ function draw(ctx){
 		ctx.font = "6pt Calibri";
 	ctx.fillStyle = "#fff"
 		ctx.fillText("By Richard Dobson",300,615);
-}
-function setCookie(name, value) 
-{
-	if (!name || !value) { return 0; }
-
-	document.cookie = name + "=" + value + ";path=/;";
-}
-
-function getCookie(name) {
-	var dc = document.cookie;
-	var begin = dc.indexOf(name);
-	var end = (dc.indexOf(";", begin) == -1) ? dc.length : dc.indexOf(";", begin);
-
-	return unescape(dc.substring((begin + (name.length + 1)), end));
 }
 
 </script>  
